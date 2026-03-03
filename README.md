@@ -100,12 +100,34 @@ pnpm start
 - Pino logging with production redaction for request bodies, tokens, auth headers, cookies
 - Same-origin API usage by default (no permissive CORS)
 
-## Render Deployment (Recommended)
+## Render Deploy
 
 Recommended for this stack because Render supports:
 - managed Postgres
 - single web service deployment
 - simple Blueprint (`render.yaml`) provisioning
+
+### Build and start commands
+
+Build command:
+
+```bash
+pnpm install --frozen-lockfile && pnpm build && pnpm db:migrate
+```
+
+Start command:
+
+```bash
+pnpm start
+```
+
+### Required env vars
+
+- `DATABASE_URL`
+- `NODE_ENV=production`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `PUBLIC_APP_URL`
 
 ### One-click / Blueprint deploy
 
@@ -115,11 +137,15 @@ Recommended for this stack because Render supports:
 4. Render reads `render.yaml` and provisions:
    - web service
    - managed Postgres
-5. Set secret env vars in Render dashboard:
+5. Set required env vars in Render dashboard:
+   - `DATABASE_URL` (auto-injected from managed Postgres when using Blueprint)
+   - `NODE_ENV=production`
    - `ADMIN_EMAIL`
    - `ADMIN_PASSWORD`
+   - `PUBLIC_APP_URL`
+6. Optional production email env vars:
    - `SMTP_*` (required for production privacy verification email flow)
-6. Deploy.
+7. Deploy.
 
 Health endpoint:
 - `/api/health`
