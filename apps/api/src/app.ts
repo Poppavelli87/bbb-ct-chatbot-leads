@@ -196,6 +196,7 @@ export const createApp = (options: CreateAppOptions = {}): express.Express => {
   const sessionStore = options.sessionStore ?? new SessionStore();
   const app = express();
 
+  app.disable("x-powered-by");
   app.set("trust proxy", 1);
 
   app.use(pinoHttp({ logger }));
@@ -216,8 +217,10 @@ export const createApp = (options: CreateAppOptions = {}): express.Express => {
           connectSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           imgSrc: ["'self'", "data:", "https:"],
+          fontSrc: ["'self'", "https:", "data:"],
           objectSrc: ["'none'"],
           baseUri: ["'self'"],
+          formAction: ["'self'"],
           frameAncestors: ["'none'"]
         }
       }
@@ -235,7 +238,8 @@ export const createApp = (options: CreateAppOptions = {}): express.Express => {
       windowMs: 60 * 1000,
       limit: 100,
       standardHeaders: true,
-      legacyHeaders: false
+      legacyHeaders: false,
+      message: { error: "Too many requests. Please try again in a minute." }
     })
   );
 
