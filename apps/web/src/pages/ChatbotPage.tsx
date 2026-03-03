@@ -79,20 +79,39 @@ const createMessage = (sender: "bot" | "user", text: string): ChatMessage => ({
 
 const initialMessage = createMessage(
   "bot",
-  "Hi, I’m Sparky from BBB Serving Connecticut. Pick what you’re interested in, and I’ll guide you one question at a time."
+  "Hey there! I'm Sparky, the BBB's friendly chatbot assistant.\n\nThis application and support chat is for businesses operating in Connecticut.\n\nBefore we get started, do you currently operate in Connecticut?"
 );
 
-const SparkyMascot = () => (
-  <div className="flex items-center gap-3 rounded-2xl bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
-    <div className="h-10 w-10 rounded-full bg-gradient-to-b from-amber-300 via-orange-500 to-red-600 p-1">
-      <div className="h-full w-full rounded-full bg-slate-950" />
-    </div>
-    <div>
-      <p className="text-sm font-semibold text-slate-900">Sparky</p>
-      <p className="text-xs text-slate-600">BBB CT Assistant</p>
-    </div>
-  </div>
-);
+const progressForPhase = (
+  phase: Phase,
+  currentStepIndex: number,
+  flowLength: number
+): number => {
+  if (phase === "done") {
+    return 100;
+  }
+
+  if (phase === "flow") {
+    if (flowLength <= 0) {
+      return 70;
+    }
+    return Math.min(95, Math.round(70 + (currentStepIndex / flowLength) * 25));
+  }
+
+  if (phase === "business_name") {
+    return 60;
+  }
+
+  if (phase === "accreditation") {
+    return 40;
+  }
+
+  if (phase === "ct") {
+    return 20;
+  }
+
+  return 0;
+};
 
 export const ChatbotPage = () => {
   const [phase, setPhase] = useState<Phase>("intent");
@@ -120,6 +139,7 @@ export const ChatbotPage = () => {
   }, [selectedIntent]);
 
   const currentStep = phase === "flow" && flow ? flow.steps[currentStepIndex] : null;
+  const progress = progressForPhase(phase, currentStepIndex, flow?.steps.length ?? 0);
 
   useEffect(() => {
     try {
@@ -328,7 +348,7 @@ export const ChatbotPage = () => {
       setPhase("flow");
       setCurrentStepIndex(0);
       setBusinessNameInput("");
-      await pushBotMessage(flow.steps[0]?.prompt ?? "Let’s continue.");
+      await pushBotMessage(flow.steps[0]?.prompt ?? "Let's continue.");
     } catch (error) {
       await pushBotMessage(`I ran into an issue: ${(error as Error).message}`);
     } finally {
@@ -388,168 +408,234 @@ export const ChatbotPage = () => {
   };
 
   if (!ready) {
-    return <div className="panel">Loading chat...</div>;
+    return (
+      <div className="min-h-screen bg-slate-100">
+        <div className="bg-blue-600 py-2 text-center text-sm text-white">
+          This application and support chat is for businesses operating in Connecticut.
+        </div>
+        <div className="mx-auto max-w-[900px] px-4 py-8 text-sm text-slate-600 sm:px-6">
+          Loading chat...
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-      <section className="panel flex min-h-[70vh] flex-col">
-        <div className="mb-4 flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
-          <SparkyMascot />
-          {phase === "flow" && flow ? (
-            <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
-              Step {currentStepIndex + 1} of {flow.steps.length}
-            </span>
-          ) : null}
+    <div className="min-h-screen bg-slate-100">
+      <div className="bg-blue-600 py-2 text-center text-sm text-white">
+        This application and support chat is for businesses operating in Connecticut.
+      </div>
+
+      <header className="mx-auto flex w-full max-w-[900px] flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-blue-100 bg-white text-xs font-semibold text-blue-700">
+            BBB
+          </div>
+          <p className="text-base font-semibold text-slate-900">BBB Serving Connecticut</p>
         </div>
 
-        <div
-          ref={scrollerRef}
-          className="flex-1 space-y-3 overflow-y-auto pr-1"
-          aria-live="polite"
-        >
-          <AnimatePresence initial={false}>
-            {messages.map((message) => (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className={`max-w-[84%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                  message.sender === "bot"
-                    ? "bg-slate-100 text-slate-800"
-                    : "ml-auto bg-orange-600 text-white"
-                }`}
-              >
-                {message.text}
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          {typing ? (
-            <div className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-slate-700">
-              <span className="dot" />
-              <span className="dot" />
-              <span className="dot" />
-            </div>
-          ) : null}
+        <div className="w-full max-w-[240px]">
+          <p className="text-right text-sm font-medium text-slate-700">
+            Progress {progress}% complete
+          </p>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-blue-100">
+            <div
+              className="h-full rounded-full bg-blue-600 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
+      </header>
 
-        <div className="mt-4 border-t border-slate-200 pt-4">
-          {phase === "intent" ? (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {intentChoices.map((choice) => (
-                <button
-                  key={choice.value}
-                  type="button"
-                  className="option-btn"
-                  onClick={() => {
-                    void handleIntentSelect(choice.value);
-                  }}
-                  disabled={submitting}
-                >
-                  <strong>{choice.label}</strong>
-                  <span className="mt-1 block text-xs text-slate-600">{choice.description}</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          {phase === "ct" ? (
-            <div className="grid gap-2 sm:grid-cols-2">
-              <button
-                className="option-btn"
-                type="button"
-                onClick={() => {
-                  void handleCtAnswer(true);
-                }}
-                disabled={submitting}
-              >
-                Yes
-              </button>
-              <button
-                className="option-btn"
-                type="button"
-                onClick={() => {
-                  void handleCtAnswer(false);
-                }}
-                disabled={submitting}
-              >
-                No
-              </button>
-            </div>
-          ) : null}
-
-          {phase === "accreditation" ? (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {accreditationChoices.map((choice) => (
-                <button
-                  key={choice.value}
-                  className="option-btn"
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => {
-                    void handleAccreditationAnswer(choice.value, choice.label);
-                  }}
-                >
-                  {choice.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          {phase === "business_name" ? (
-            <form
-              className="flex gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void startLeadAndFlow();
-              }}
-            >
-              <input
-                className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2"
-                value={businessNameInput}
-                onChange={(event) => setBusinessNameInput(event.target.value)}
-                placeholder="Business name"
-                disabled={submitting}
+      <main className="mx-auto w-full max-w-[900px] px-4 pb-10 sm:px-6">
+        <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-slate-200/60 ring-1 ring-slate-200">
+          <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4 text-white">
+            <div className="flex items-center gap-3">
+              <img
+                src="/sparky.svg"
+                alt="Sparky avatar"
+                className="w-10 h-10 rounded-full bg-white p-1"
               />
-              <button className="btn-primary" type="submit" disabled={submitting}>
-                Continue
-              </button>
-            </form>
-          ) : null}
-
-          {phase === "flow" && currentStep ? (
-            <FlowInput step={currentStep} onSubmit={handleFlowAnswer} disabled={submitting} />
-          ) : null}
-
-          {phase === "done" ? (
-            <div className="flex flex-wrap gap-2">
-              <button className="btn-primary" type="button" onClick={restart}>
-                Start over
-              </button>
-              {endState === "redirect" ? (
-                <a className="btn-secondary" href="https://www.bbb.org" target="_blank" rel="noreferrer">
-                  Open bbb.org
-                </a>
-              ) : null}
+              <div>
+                <p className="text-sm font-semibold">Sparky</p>
+                <p className="text-xs text-blue-100">BBB Chatbot Assistant</p>
+              </div>
             </div>
-          ) : null}
-        </div>
-      </section>
+            {phase === "flow" && flow ? (
+              <span className="rounded-full bg-white/20 px-3 py-1 text-xs">
+                Step {currentStepIndex + 1} of {flow.steps.length}
+              </span>
+            ) : null}
+          </div>
 
-      <aside className="panel space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">What gets saved</h2>
-        <p className="text-sm text-slate-700">
-          Your lead is created once you share business name. If you pause, status remains
-          in-progress so our team can understand drop-off steps.
-        </p>
-        <div className="rounded-2xl bg-slate-100 p-3 text-xs text-slate-700">
-          <p>Lead ID: {leadId ?? "Not created yet"}</p>
-          <p>Intent: {selectedIntent ?? "Not selected"}</p>
-          <p>CT Business: {isCtBusiness === null ? "Unknown" : isCtBusiness ? "Yes" : "No"}</p>
-          <p>Accreditation: {accreditationStatus ?? "Unknown"}</p>
-        </div>
-      </aside>
+          <div
+            ref={scrollerRef}
+            className="max-h-[430px] min-h-[260px] space-y-3 overflow-y-auto bg-slate-50 px-5 py-5"
+            aria-live="polite"
+          >
+            <AnimatePresence initial={false}>
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className={`max-w-[88%] whitespace-pre-line rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                    message.sender === "bot"
+                      ? "bg-gray-100 text-slate-800"
+                      : "ml-auto bg-blue-600 text-white"
+                  }`}
+                >
+                  {message.text}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {typing ? (
+              <div className="inline-flex items-center gap-2 rounded-2xl bg-gray-100 px-4 py-3 text-slate-700">
+                <span className="dot" />
+                <span className="dot" />
+                <span className="dot" />
+              </div>
+            ) : null}
+          </div>
+
+          <div className="border-t border-slate-200 px-5 py-4">
+            {phase === "intent" ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {intentChoices.map((choice) => (
+                  <button
+                    key={choice.value}
+                    type="button"
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-sm transition hover:border-blue-400 hover:bg-blue-50"
+                    onClick={() => {
+                      void handleIntentSelect(choice.value);
+                    }}
+                    disabled={submitting}
+                  >
+                    <span className="block font-semibold text-slate-900">{choice.label}</span>
+                    <span className="mt-1 block text-xs text-slate-600">{choice.description}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {phase === "ct" ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  className="bg-blue-600 text-white rounded-lg px-6 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
+                  type="button"
+                  onClick={() => {
+                    void handleCtAnswer(true);
+                  }}
+                  disabled={submitting}
+                >
+                  Yes
+                </button>
+                <button
+                  className="border border-gray-300 rounded-lg px-6 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  type="button"
+                  onClick={() => {
+                    void handleCtAnswer(false);
+                  }}
+                  disabled={submitting}
+                >
+                  No
+                </button>
+              </div>
+            ) : null}
+
+            {phase === "accreditation" ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {accreditationChoices.map((choice) => (
+                  <button
+                    key={choice.value}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-sm font-medium text-slate-800 transition hover:border-blue-400 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => {
+                      void handleAccreditationAnswer(choice.value, choice.label);
+                    }}
+                  >
+                    {choice.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {phase === "business_name" ? (
+              <form
+                className="flex flex-col gap-3 sm:flex-row"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void startLeadAndFlow();
+                }}
+              >
+                <input
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2"
+                  value={businessNameInput}
+                  onChange={(event) => setBusinessNameInput(event.target.value)}
+                  placeholder="Business name"
+                  disabled={submitting}
+                />
+                <button
+                  className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  type="submit"
+                  disabled={submitting}
+                >
+                  Continue
+                </button>
+              </form>
+            ) : null}
+
+            {phase === "flow" && currentStep ? (
+              <FlowInput step={currentStep} onSubmit={handleFlowAnswer} disabled={submitting} />
+            ) : null}
+
+            {phase === "done" ? (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white"
+                  type="button"
+                  onClick={restart}
+                >
+                  Start over
+                </button>
+                {endState === "redirect" ? (
+                  <a
+                    className="rounded-lg border border-slate-300 px-6 py-2 text-sm font-medium text-slate-800"
+                    href="https://www.bbb.org"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open bbb.org
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h2 className="text-lg font-semibold text-slate-900">Session Notes</h2>
+          <p className="mt-2 text-sm text-slate-600">Sparky will take notes here as you go...</p>
+          <div className="mt-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
+            <p>Lead ID: {leadId ?? "Not created yet"}</p>
+            <p>Intent: {selectedIntent ?? "Not selected"}</p>
+            <p>CT Business: {isCtBusiness === null ? "Unknown" : isCtBusiness ? "Yes" : "No"}</p>
+            <p>Accreditation: {accreditationStatus ?? "Unknown"}</p>
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 p-5 text-white shadow-sm">
+          <h2 className="text-lg font-semibold">Why BBB Accreditation?</h2>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm">
+            <li>Build trust with your customers</li>
+            <li>Stand out from competitors</li>
+            <li>Join 400,000+ accredited businesses</li>
+          </ul>
+        </section>
+      </main>
     </div>
   );
 };
