@@ -1,0 +1,19 @@
+{
+  "name": "bbb-ct-chatbot-leads",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@10.17.0",
+  "scripts": {
+    "dev": "pnpm --filter @bbb/shared build && pnpm --filter @bbb/db build && pnpm db:migrate && concurrently -k -n API,WEB -c cyan,magenta \"pnpm --filter @bbb/api dev\" \"pnpm --filter @bbb/web dev\"",
+    "build": "pnpm -r build",
+    "start": "pnpm db:migrate && pnpm --filter @bbb/api start",
+    "test": "pnpm -r --if-present test",
+    "db:migrate": "pnpm --filter @bbb/db migrate",
+    "db:generate": "pnpm --filter @bbb/db generate",
+    "db:studio": "pnpm --filter @bbb/db studio"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.2"
+  }
+}

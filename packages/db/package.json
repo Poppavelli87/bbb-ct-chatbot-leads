@@ -1,0 +1,27 @@
+{
+  "name": "@bbb/db",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "drizzle"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "generate": "drizzle-kit generate --config drizzle.config.ts",
+    "migrate": "drizzle-kit migrate --config drizzle.config.ts",
+    "studio": "drizzle-kit studio --config drizzle.config.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.5",
+    "postgres": "^3.4.7",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.5",
+    "@types/node": "^24.5.2"
+  }
+}
