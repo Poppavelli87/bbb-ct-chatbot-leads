@@ -28,6 +28,7 @@ type PersistedState = {
   selectedIntent: SelectableIntent | null;
   isCtBusiness: boolean | null;
   accreditationStatus: AccreditationStatus | null;
+  businessName: string | null;
   leadId: string | null;
   currentStepIndex: number;
   messages: ChatMessage[];
@@ -126,6 +127,7 @@ export const ChatbotPage = () => {
   const [isCtBusiness, setIsCtBusiness] = useState<boolean | null>(null);
   const [accreditationStatus, setAccreditationStatus] =
     useState<AccreditationStatus | null>(null);
+  const [businessName, setBusinessName] = useState<string | null>(null);
   const [leadId, setLeadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -166,6 +168,7 @@ export const ChatbotPage = () => {
       setSelectedIntent(parsed.selectedIntent);
       setIsCtBusiness(parsed.isCtBusiness);
       setAccreditationStatus(parsed.accreditationStatus);
+      setBusinessName(parsed.businessName ?? null);
       setLeadId(parsed.leadId);
       setCurrentStepIndex(parsed.currentStepIndex);
       setMessages(parsed.messages.length > 0 ? parsed.messages : [initialMessage]);
@@ -188,6 +191,7 @@ export const ChatbotPage = () => {
       selectedIntent,
       isCtBusiness,
       accreditationStatus,
+      businessName,
       leadId,
       currentStepIndex,
       messages
@@ -196,6 +200,7 @@ export const ChatbotPage = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   }, [
     accreditationStatus,
+    businessName,
     currentStepIndex,
     endState,
     isCtBusiness,
@@ -338,7 +343,9 @@ export const ChatbotPage = () => {
 
     setSubmitting(true);
     try {
-      pushUserMessage(businessNameInput.trim());
+      const normalizedBusinessName = businessNameInput.trim();
+      pushUserMessage(normalizedBusinessName);
+      setBusinessName(normalizedBusinessName);
 
       const started = await apiRequest<{ lead: { id: string } }>("/api/leads/start", {
         method: "POST",
@@ -346,7 +353,7 @@ export const ChatbotPage = () => {
           isCtBusiness,
           accreditationStatus,
           intent: selectedIntent,
-          businessName: businessNameInput.trim()
+          businessName: normalizedBusinessName
         })
       });
 
@@ -408,10 +415,23 @@ export const ChatbotPage = () => {
     setSelectedIntent(null);
     setIsCtBusiness(null);
     setAccreditationStatus(null);
+    setBusinessName(null);
     setLeadId(null);
     setCurrentStepIndex(0);
     setMessages([initialMessage]);
   };
+
+  const applicationTypeLabel = selectedIntent
+    ? intentChoices.find((choice) => choice.value === selectedIntent)?.label ?? selectedIntent
+    : "Not selected";
+
+  const accreditationStatusLabel =
+    accreditationStatus === null
+      ? "Unknown"
+      : accreditationChoices.find((choice) => choice.value === accreditationStatus)?.label ??
+        accreditationStatus;
+
+  const businessLabel = businessNameInput.trim() || businessName || "Not provided yet";
 
   if (!ready) {
     return (
@@ -621,13 +641,17 @@ export const ChatbotPage = () => {
         </section>
 
         <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">Session Notes</h2>
-          <p className="mt-2 text-sm text-slate-600">Sparky will take notes here as you go...</p>
+          <h2 className="text-lg font-semibold text-slate-900">Conversation Notes</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Sparky will keep track of details you share during this conversation.
+          </p>
           <div className="mt-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
-            <p>Lead ID: {leadId ?? "Not created yet"}</p>
-            <p>Intent: {selectedIntent ?? "Not selected"}</p>
-            <p>CT Business: {isCtBusiness === null ? "Unknown" : isCtBusiness ? "Yes" : "No"}</p>
-            <p>Accreditation: {accreditationStatus ?? "Unknown"}</p>
+            <p>Business: {businessLabel}</p>
+            <p>Application Type: {applicationTypeLabel}</p>
+            <p>
+              Connecticut Business: {isCtBusiness === null ? "Unknown" : isCtBusiness ? "Yes" : "No"}
+            </p>
+            <p>Accreditation Status: {accreditationStatusLabel}</p>
           </div>
         </section>
 
