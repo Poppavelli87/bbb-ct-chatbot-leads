@@ -16,7 +16,7 @@ services:
           property: connectionString
       - key: PUBLIC_APP_URL
         value: https://bbb-ct-chatbot-leads.onrender.com
-      - key: ADMIN_EMAIL
+      - key: ADMIN_USERNAME
         sync: false
       - key: ADMIN_PASSWORD
         sync: false

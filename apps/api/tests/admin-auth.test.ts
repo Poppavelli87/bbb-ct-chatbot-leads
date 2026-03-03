@@ -7,7 +7,7 @@ import { MemoryStore } from "../src/store.js";
 
 describe("admin auth", () => {
   it("logs in and can access stats", async () => {
-    process.env.ADMIN_EMAIL = "admin@example.com";
+    process.env.ADMIN_USERNAME = "admin";
     process.env.ADMIN_PASSWORD = "super-secret";
 
     const app = createApp({
@@ -17,7 +17,7 @@ describe("admin auth", () => {
     });
 
     const login = await request(app).post("/api/admin/login").send({
-      email: "admin@example.com",
+      username: "admin",
       password: "super-secret"
     });
 

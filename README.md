@@ -31,7 +31,7 @@ cp .env.example .env
 
 Required:
 - `DATABASE_URL`
-- `ADMIN_EMAIL`
+- `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
 
 Optional (required in production privacy-email flow):
@@ -125,7 +125,7 @@ pnpm start
 
 - `DATABASE_URL`
 - `NODE_ENV=production`
-- `ADMIN_EMAIL`
+- `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
 - `PUBLIC_APP_URL`
 
@@ -140,7 +140,7 @@ pnpm start
 5. Set required env vars in Render dashboard:
    - `DATABASE_URL` (auto-injected from managed Postgres when using Blueprint)
    - `NODE_ENV=production`
-   - `ADMIN_EMAIL`
+   - `ADMIN_USERNAME`
    - `ADMIN_PASSWORD`
    - `PUBLIC_APP_URL`
 6. Optional production email env vars:
@@ -158,7 +158,7 @@ Health endpoint:
    - `DATABASE_URL` (from Railway Postgres)
    - `NODE_ENV=production`
    - `PUBLIC_APP_URL=https://<your-railway-domain>`
-   - `ADMIN_EMAIL`
+   - `ADMIN_USERNAME`
    - `ADMIN_PASSWORD`
    - optional `SMTP_*` for privacy verification emails
 4. Build command:

@@ -10,7 +10,7 @@ describe("lead API", () => {
   const app = createApp({ store, sessionStore: new SessionStore(), serveStatic: false });
 
   beforeEach(() => {
-    process.env.ADMIN_EMAIL = "admin@example.com";
+    process.env.ADMIN_USERNAME = "admin";
     process.env.ADMIN_PASSWORD = "super-secret";
   });
 

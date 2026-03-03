@@ -55,7 +55,7 @@ const queryStringFrom = (params: Record<string, string | number | undefined>): s
 export const AdminPage = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -146,7 +146,7 @@ export const AdminPage = () => {
     try {
       await apiRequest("/api/admin/login", {
         method: "POST",
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ username, password })
       });
       setAuthenticated(true);
       await fetchStats();
@@ -176,7 +176,9 @@ export const AdminPage = () => {
     return (
       <section className="mx-auto max-w-md panel">
         <h1 className="text-2xl font-semibold text-slate-900">Admin Login</h1>
-        <p className="mt-2 text-sm text-slate-600">Use `ADMIN_EMAIL` and `ADMIN_PASSWORD`.</p>
+        <p className="mt-2 text-sm text-slate-600">
+          Use your administrator username and password.
+        </p>
         <form
           className="mt-6 space-y-3"
           onSubmit={(event) => {
@@ -185,11 +187,11 @@ export const AdminPage = () => {
           }}
         >
           <input
-            type="email"
+            type="text"
             className="w-full rounded-xl border border-slate-300 px-3 py-2"
-            placeholder="Email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            placeholder="Username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
           />
           <input
             type="password"

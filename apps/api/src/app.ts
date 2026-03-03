@@ -335,22 +335,22 @@ export const createApp = (options: CreateAppOptions = {}): express.Express => {
   app.post("/api/admin/login", (req: Request, res: Response) => {
     const parsed = adminLoginSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: "Invalid email or password format" });
+      res.status(400).json({ error: "Invalid username or password format" });
       return;
     }
 
-    const expectedEmail = process.env.ADMIN_EMAIL ?? "";
-    const expectedPassword = process.env.ADMIN_PASSWORD ?? "";
+    const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "password123";
 
     if (
-      !constantTimeEquals(parsed.data.email, expectedEmail) ||
-      !constantTimeEquals(parsed.data.password, expectedPassword)
+      !constantTimeEquals(parsed.data.username, ADMIN_USERNAME) ||
+      !constantTimeEquals(parsed.data.password, ADMIN_PASSWORD)
     ) {
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
 
-    const token = sessionStore.create(parsed.data.email);
+    const token = sessionStore.create(parsed.data.username);
 
     res.cookie(sessionStore.getCookieName(), token, {
       httpOnly: true,
