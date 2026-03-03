@@ -7,8 +7,6 @@
   --panel-border: rgba(15, 23, 42, 0.08);
   --text-main: #0f172a;
   --text-muted: #475569;
-  --accent: #ea580c;
-  --accent-dark: #c2410c;
 }
 
 * {
@@ -39,22 +37,27 @@ body {
 .btn-primary {
   border: none;
   border-radius: 0.75rem;
-  background: linear-gradient(120deg, var(--accent), #f97316);
+  background: #2563eb;
   color: white;
   font-weight: 600;
-  padding: 0.55rem 0.95rem;
+  padding: 0.7rem 1.25rem;
   cursor: pointer;
-  transition: transform 0.12s ease, filter 0.12s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.05);
+  background: #1d4ed8;
+  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.22), 0 0 0 2px rgba(253, 186, 116, 0.5);
+}
+
+.btn-primary:active {
+  transform: scale(0.99);
 }
 
 .btn-primary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -66,6 +69,13 @@ body {
   padding: 0.45rem 0.85rem;
   cursor: pointer;
   text-decoration: none;
+  transition: border-color 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-secondary:hover {
+  border-color: #fdba74;
+  background: #fff7ed;
+  box-shadow: 0 4px 14px rgba(148, 163, 184, 0.2);
 }
 
 .option-btn {
@@ -75,42 +85,51 @@ body {
   text-align: left;
   padding: 0.75rem;
   cursor: pointer;
-  transition: border-color 0.12s ease, transform 0.12s ease;
+  transition: border-color 0.12s ease, background-color 0.12s ease, box-shadow 0.12s ease,
+    transform 0.12s ease;
 }
 
 .option-btn:hover {
-  border-color: #fb923c;
-  transform: translateY(-1px);
+  border-color: #fdba74;
+  background: #fff7ed;
+  box-shadow: 0 6px 18px rgba(148, 163, 184, 0.16);
+}
+
+.option-btn:active {
+  transform: scale(0.99);
 }
 
 .option-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-.dot {
+.typing-dot {
   width: 0.4rem;
   height: 0.4rem;
   border-radius: 999px;
   background: #64748b;
-  animation: blink 1s infinite;
+  animation: typing-bounce 1s ease-in-out infinite;
 }
 
-.dot:nth-child(2) {
-  animation-delay: 0.12s;
+.typing-dot:nth-child(2) {
+  animation-delay: 0.14s;
 }
 
-.dot:nth-child(3) {
-  animation-delay: 0.24s;
+.typing-dot:nth-child(3) {
+  animation-delay: 0.28s;
 }
 
-@keyframes blink {
+@keyframes typing-bounce {
   0%,
-  80%,
+  70%,
   100% {
-    opacity: 0.2;
+    transform: translateY(0);
+    opacity: 0.35;
   }
-  40% {
+  35% {
+    transform: translateY(-3px);
     opacity: 1;
   }
 }

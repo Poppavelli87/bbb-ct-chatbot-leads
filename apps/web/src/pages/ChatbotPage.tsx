@@ -3,12 +3,12 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import {
   getFlowByIntent,
-  type AccreditationStatus,
-  type LeadIntent
+  type AccreditationStatus
 } from "@bbb/shared";
 
 import { apiRequest } from "../api";
 import { FlowInput } from "../components/FlowInput";
+import { SparkyAvatar } from "../components/SparkyAvatar";
 
 type SelectableIntent = "accreditation" | "advertising" | "ignite" | "both";
 
@@ -112,6 +112,12 @@ const progressForPhase = (
 
   return 0;
 };
+
+const primaryButtonClass =
+  "rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition duration-150 hover:bg-blue-700 hover:shadow-md hover:ring-2 hover:ring-orange-300/60 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60";
+
+const secondaryButtonClass =
+  "rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-slate-800 transition duration-150 hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60";
 
 export const ChatbotPage = () => {
   const [phase, setPhase] = useState<Phase>("intent");
@@ -449,13 +455,10 @@ export const ChatbotPage = () => {
 
       <main className="mx-auto w-full max-w-[900px] px-4 pb-10 sm:px-6">
         <section className="overflow-hidden rounded-2xl bg-white shadow-lg shadow-slate-200/60 ring-1 ring-slate-200">
-          <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4 text-white">
+          <div className="relative flex items-center justify-between bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-5 py-4 text-white shadow-[0_10px_26px_rgba(29,78,216,0.35)]">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/10" />
             <div className="flex items-center gap-3">
-              <img
-                src="/sparky.svg"
-                alt="Sparky avatar"
-                className="w-10 h-10 rounded-full bg-white p-1"
-              />
+              <SparkyAvatar />
               <div>
                 <p className="text-sm font-semibold">Sparky</p>
                 <p className="text-xs text-blue-100">BBB Chatbot Assistant</p>
@@ -477,9 +480,10 @@ export const ChatbotPage = () => {
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
                   className={`max-w-[88%] whitespace-pre-line rounded-2xl px-4 py-3 text-sm shadow-sm ${
                     message.sender === "bot"
                       ? "bg-gray-100 text-slate-800"
@@ -493,9 +497,9 @@ export const ChatbotPage = () => {
 
             {typing ? (
               <div className="inline-flex items-center gap-2 rounded-2xl bg-gray-100 px-4 py-3 text-slate-700">
-                <span className="dot" />
-                <span className="dot" />
-                <span className="dot" />
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+                <span className="typing-dot" />
               </div>
             ) : null}
           </div>
@@ -507,7 +511,7 @@ export const ChatbotPage = () => {
                   <button
                     key={choice.value}
                     type="button"
-                    className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-sm transition hover:border-blue-400 hover:bg-blue-50"
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-sm transition duration-150 hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                     onClick={() => {
                       void handleIntentSelect(choice.value);
                     }}
@@ -523,7 +527,7 @@ export const ChatbotPage = () => {
             {phase === "ct" ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <button
-                  className="bg-blue-600 text-white rounded-lg px-6 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
+                  className={primaryButtonClass}
                   type="button"
                   onClick={() => {
                     void handleCtAnswer(true);
@@ -533,7 +537,7 @@ export const ChatbotPage = () => {
                   Yes
                 </button>
                 <button
-                  className="border border-gray-300 rounded-lg px-6 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className={secondaryButtonClass}
                   type="button"
                   onClick={() => {
                     void handleCtAnswer(false);
@@ -550,7 +554,7 @@ export const ChatbotPage = () => {
                 {accreditationChoices.map((choice) => (
                   <button
                     key={choice.value}
-                    className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-sm font-medium text-slate-800 transition hover:border-blue-400 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-sm font-medium text-slate-800 transition duration-150 hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                     type="button"
                     disabled={submitting}
                     onClick={() => {
@@ -579,7 +583,7 @@ export const ChatbotPage = () => {
                   disabled={submitting}
                 />
                 <button
-                  className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  className={primaryButtonClass}
                   type="submit"
                   disabled={submitting}
                 >
@@ -595,7 +599,7 @@ export const ChatbotPage = () => {
             {phase === "done" ? (
               <div className="flex flex-wrap gap-2">
                 <button
-                  className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white"
+                  className={primaryButtonClass}
                   type="button"
                   onClick={restart}
                 >
@@ -603,7 +607,7 @@ export const ChatbotPage = () => {
                 </button>
                 {endState === "redirect" ? (
                   <a
-                    className="rounded-lg border border-slate-300 px-6 py-2 text-sm font-medium text-slate-800"
+                    className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-slate-800 transition duration-150 hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm active:scale-[0.99]"
                     href="https://www.bbb.org"
                     target="_blank"
                     rel="noreferrer"

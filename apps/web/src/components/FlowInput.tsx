@@ -79,7 +79,7 @@ export const FlowInput = ({ step, disabled, onSubmit }: FlowInputProps) => {
                 className={`rounded-xl border px-3 py-2 text-left transition ${
                   multiValues[0] === option.value
                     ? "border-orange-500 bg-orange-100"
-                    : "border-slate-300 bg-white hover:border-orange-300"
+                    : "border-slate-300 bg-white hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm"
                 }`}
                 onClick={() => setMultiValues([option.value])}
               >
@@ -133,7 +133,7 @@ export const FlowInput = ({ step, disabled, onSubmit }: FlowInputProps) => {
                   className={`rounded-xl border px-3 py-2 text-left transition ${
                     selected
                       ? "border-orange-500 bg-orange-100"
-                      : "border-slate-300 bg-white hover:border-orange-300"
+                      : "border-slate-300 bg-white hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm"
                   }`}
                   onClick={() => {
                     setMultiValues((previous) =>
@@ -313,7 +313,7 @@ export const FlowInput = ({ step, disabled, onSubmit }: FlowInputProps) => {
                 className={`rounded-xl border px-3 py-2 text-left transition ${
                   selected
                     ? "border-orange-500 bg-orange-100"
-                    : "border-slate-300 bg-white hover:border-orange-300"
+                    : "border-slate-300 bg-white hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm"
                 }`}
                 onClick={() =>
                   setMultiValues((previous) =>
