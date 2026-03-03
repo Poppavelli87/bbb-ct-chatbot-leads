@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+:root {
+  --bg-top: #fff7ec;
+  --bg-bottom: #f2f6ff;
+  --panel: rgba(255, 255, 255, 0.86);
+  --panel-border: rgba(15, 23, 42, 0.08);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --accent: #ea580c;
+  --accent-dark: #c2410c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  color: var(--text-main);
+  background: radial-gradient(circle at 0 0, #fde68a 0, transparent 30%),
+    radial-gradient(circle at 100% 20%, #bfdbfe 0, transparent 35%),
+    linear-gradient(170deg, var(--bg-top), var(--bg-bottom));
+}
+
+.bg-app {
+  background: transparent;
+}
+
+.panel {
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  border-radius: 1.25rem;
+  padding: 1rem;
+  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.08);
+}
+
+.btn-primary {
+  border: none;
+  border-radius: 0.75rem;
+  background: linear-gradient(120deg, var(--accent), #f97316);
+  color: white;
+  font-weight: 600;
+  padding: 0.55rem 0.95rem;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: white;
+  color: #0f172a;
+  font-weight: 500;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.option-btn {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.85rem;
+  background: white;
+  text-align: left;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.option-btn:hover {
+  border-color: #fb923c;
+  transform: translateY(-1px);
+}
+
+.option-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: #64748b;
+  animation: blink 1s infinite;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.stat-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.6rem;
+  color: var(--text-main);
+}
+
+@media (max-width: 768px) {
+  .panel {
+    padding: 0.85rem;
+  }
+}
