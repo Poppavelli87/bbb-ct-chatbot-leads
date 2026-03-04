@@ -88,7 +88,7 @@ const createMessage = (sender: "bot" | "user", text: string): ChatMessage => ({
 
 const initialMessage = createMessage(
   "bot",
-  "Hey there! I'm Sparky, the BBB's friendly chatbot assistant.\n\nThis application and support chat is for businesses operating in Connecticut.\n\nBefore we get started, do you currently operate in Connecticut?"
+  "Hi there, and welcome! I'm Sparky, your BBB chatbot assistant.\n\nThis application and support chat is for businesses operating in Connecticut.\n\nTo make sure I guide you to the right next step, does your business currently operate in Connecticut?"
 );
 
 const progressForPhase = (
@@ -256,7 +256,7 @@ export const ChatbotPage = () => {
       setPhase("ct");
       const intentLabel = intentChoices.find((choice) => choice.value === intent)?.label ?? intent;
       pushUserMessage(intentLabel);
-      await pushBotMessage("First question: Is your business located in Connecticut?");
+      await pushBotMessage("Great choice. First, is your business located in Connecticut?");
     } finally {
       setSubmitting(false);
     }
@@ -288,7 +288,7 @@ export const ChatbotPage = () => {
         setPhase("done");
         setEndState("out_of_scope");
         await pushBotMessage(
-          "Thanks for checking in. This assistant is focused on Connecticut businesses, but you can still explore resources at bbb.org."
+          "Thanks so much for checking in. This assistant is focused on Connecticut businesses, but you can always explore resources at bbb.org."
         );
         return;
       }
@@ -296,7 +296,7 @@ export const ChatbotPage = () => {
       setPhase("accreditation");
       await pushBotMessage("Is your business currently BBB Accredited?");
     } catch (error) {
-      await pushBotMessage(`I ran into an issue: ${(error as Error).message}`);
+      await pushBotMessage(`I'm sorry, I ran into an issue: ${(error as Error).message}. Please try again.`);
     } finally {
       setSubmitting(false);
     }
@@ -330,16 +330,16 @@ export const ChatbotPage = () => {
         setPhase("done");
         setEndState("redirect");
         await pushBotMessage(
-          "The best next step is bbb.org for this request. Use the button below and we can help when you return."
+          "For this request, the best next step is bbb.org. Use the button below, and we'll be here to help when you come back."
         );
         return;
       }
 
       setAccreditationStatus(value);
       setPhase("business_name");
-      await pushBotMessage("What is your business name?");
+      await pushBotMessage("What is your business name? We'll use it to personalize your application.");
     } catch (error) {
-      await pushBotMessage(`I ran into an issue: ${(error as Error).message}`);
+      await pushBotMessage(`I'm sorry, I ran into an issue: ${(error as Error).message}. Please try again.`);
     } finally {
       setSubmitting(false);
     }
@@ -376,9 +376,9 @@ export const ChatbotPage = () => {
       setPhase("flow");
       setCurrentStepIndex(0);
       setBusinessNameInput("");
-      await pushBotMessage(flow.steps[0]?.prompt ?? "Let's continue.");
+      await pushBotMessage(flow.steps[0]?.prompt ?? "Great, let's keep going.");
     } catch (error) {
-      await pushBotMessage(`I ran into an issue: ${(error as Error).message}`);
+      await pushBotMessage(`I'm sorry, I ran into an issue: ${(error as Error).message}. Please try again.`);
     } finally {
       setSubmitting(false);
     }
@@ -409,7 +409,7 @@ export const ChatbotPage = () => {
         setPhase("done");
         setEndState("completed");
         await pushBotMessage(
-          "Thank you. Your information has been saved and our BBB Serving Connecticut team will follow up soon."
+          "Thank you for sharing your information. Your submission is in, and our BBB Serving Connecticut team will follow up soon."
         );
         return;
       }
@@ -417,7 +417,7 @@ export const ChatbotPage = () => {
       setCurrentStepIndex(nextIndex);
       await pushBotMessage(nextStep.prompt);
     } catch (error) {
-      await pushBotMessage(`I ran into an issue: ${(error as Error).message}`);
+      await pushBotMessage(`I'm sorry, I ran into an issue: ${(error as Error).message}. Please try again.`);
     } finally {
       setSubmitting(false);
     }

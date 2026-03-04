@@ -144,17 +144,17 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
     intent: "accreditation",
     title: "BBB Accreditation Application",
     steps: [
-      makeTextStep("year_opened", "What year did your business open?", commonSchemas.yearOpened, "e.g., 2014", "number"),
+      makeTextStep("year_opened", "To get started, what year did your business open?", commonSchemas.yearOpened, "e.g., 2014", "number"),
       makeTextStep(
         "licenses_certifications",
-        "List any licenses or certifications you hold.",
+        "Please share any licenses or certifications your business holds.",
         z.string().min(2).max(500),
         "State license #, trade certs, etc.",
         "textarea"
       ),
       {
         key: "business_structure",
-        prompt: "Which business structure best describes you?",
+        prompt: "Which business structure best describes your business?",
         type: "select",
         options: [
           { label: "Sole proprietorship", value: "sole_prop" },
@@ -168,7 +168,7 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
       },
       {
         key: "industry_type",
-        prompt: "What industry are you in?",
+        prompt: "What industry is your business in?",
         type: "object",
         schema: commonSchemas.industryType,
         options: [
@@ -182,23 +182,23 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
           { label: "Other", value: "other" }
         ]
       },
-      makeTextStep("owner_title", "What is the owner or principal title?", z.string().min(2).max(120)),
-      makeTextStep("employee_count", "How many employees do you have?", commonSchemas.employeeCount, "e.g., 12", "number"),
-      makeTextStep("website", "Website (optional)", commonSchemas.website, "https://example.com", "url"),
+      makeTextStep("owner_title", "What is the owner's or principal's title?", z.string().min(2).max(120)),
+      makeTextStep("employee_count", "About how many employees are on your team?", commonSchemas.employeeCount, "e.g., 12", "number"),
+      makeTextStep("website", "If you have one, what is your website? (optional)", commonSchemas.website, "https://example.com", "url"),
       {
         key: "address_lines",
-        prompt: "Business address line 1 (and line 2 optional).",
+        prompt: "What is your business address? (Line 1 required, Line 2 optional.)",
         type: "object",
         schema: commonSchemas.addressLines
       },
-      makeTextStep("city", "City", commonSchemas.city),
-      makeTextStep("state", "State", commonSchemas.state, "CT"),
-      makeTextStep("zip", "ZIP code", commonSchemas.zip, "06001"),
-      makeTextStep("phone", "Best phone number", commonSchemas.phone, "(860) 555-0199", "phone"),
-      makeTextStep("email", "Best email address", commonSchemas.email, "hello@business.com", "email"),
+      makeTextStep("city", "What city is your business located in?", commonSchemas.city),
+      makeTextStep("state", "What state is your business located in?", commonSchemas.state, "CT"),
+      makeTextStep("zip", "What is your business ZIP code?", commonSchemas.zip, "06001"),
+      makeTextStep("phone", "What's the best phone number to reach you?", commonSchemas.phone, "(860) 555-0199", "phone"),
+      makeTextStep("email", "What's the best email address to reach you?", commonSchemas.email, "hello@business.com", "email"),
       {
         key: "preferred_contact_method",
-        prompt: "Preferred contact method?",
+        prompt: "How would you prefer our team contact you?",
         type: "select",
         options: [
           { label: "Phone", value: "phone" },
@@ -206,17 +206,17 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
         ],
         schema: commonSchemas.preferredContactMethod
       },
-      makeTextStep("notes", "Any extra notes? (optional)", commonSchemas.notes, "Anything else we should know", "textarea")
+      makeTextStep("notes", "Is there anything else you'd like us to know? (optional)", commonSchemas.notes, "Anything else we should know", "textarea")
     ]
   },
   advertising: {
     intent: "advertising",
     title: "Advertising Inquiry",
     steps: [
-      makeTextStep("contact_name", "Who should we contact?", commonSchemas.contactName),
-      makeTextStep("role_title", "Your role/title", commonSchemas.roleTitle),
-      makeTextStep("phone", "Best phone number", commonSchemas.phone, "(860) 555-0199", "phone"),
-      makeTextStep("email", "Best email address", commonSchemas.email, "name@business.com", "email"),
+      makeTextStep("contact_name", "Who is the best person for us to contact?", commonSchemas.contactName),
+      makeTextStep("role_title", "What is your role/title?", commonSchemas.roleTitle),
+      makeTextStep("phone", "What's the best phone number to reach you?", commonSchemas.phone, "(860) 555-0199", "phone"),
+      makeTextStep("email", "What's the best email address to reach you?", commonSchemas.email, "name@business.com", "email"),
       {
         key: "budget_range",
         prompt: "What budget range are you considering?",
@@ -232,7 +232,7 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
       },
       {
         key: "advertising_interests",
-        prompt: "What are you interested in? (Select one or more)",
+        prompt: "Which advertising options are you most interested in? (Select one or more)",
         type: "object",
         schema: commonSchemas.advertisingInterests,
         options: [
@@ -243,20 +243,20 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
           { label: "Other", value: "other" }
         ]
       },
-      makeTextStep("notes", "Any additional details? (optional)", commonSchemas.notes, "Goals, timeline, notes", "textarea")
+      makeTextStep("notes", "Any additional details you'd like to share? (optional)", commonSchemas.notes, "Goals, timeline, notes", "textarea")
     ]
   },
   ignite: {
     intent: "ignite",
     title: "Ignite Coworking Inquiry",
     steps: [
-      makeTextStep("contact_name", "Who should we contact?", commonSchemas.contactName),
-      makeTextStep("phone", "Best phone number", commonSchemas.phone, "(860) 555-0199", "phone"),
-      makeTextStep("email", "Best email address", commonSchemas.email, "name@business.com", "email"),
+      makeTextStep("contact_name", "Who is the best person for us to contact?", commonSchemas.contactName),
+      makeTextStep("phone", "What's the best phone number to reach you?", commonSchemas.phone, "(860) 555-0199", "phone"),
+      makeTextStep("email", "What's the best email address to reach you?", commonSchemas.email, "name@business.com", "email"),
       makeTextStep("team_size", "How many people are on your team?", commonSchemas.teamSize, "e.g., 5", "number"),
       {
         key: "workspace_preferences",
-        prompt: "Which workspace options are you interested in?",
+        prompt: "Which workspace options are you most interested in?",
         type: "multi_select",
         options: [
           { label: "Hot Desk", value: "hot_desk" },
@@ -270,7 +270,7 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
       },
       {
         key: "start_timeline",
-        prompt: "When are you hoping to start?",
+        prompt: "When would you ideally like to get started?",
         type: "select",
         options: [
           { label: "ASAP", value: "asap" },
@@ -286,17 +286,17 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
         type: "boolean",
         schema: commonSchemas.visitInterest
       },
-      makeTextStep("notes", "Any extra notes? (optional)", commonSchemas.notes, "Anything we should prepare", "textarea")
+      makeTextStep("notes", "Anything else you'd like us to know? (optional)", commonSchemas.notes, "Anything we should prepare", "textarea")
     ]
   },
   both: {
     intent: "both",
     title: "Advertising + Ignite Inquiry",
     steps: [
-      makeTextStep("contact_name", "Who should we contact?", commonSchemas.contactName),
-      makeTextStep("role_title", "Role/title (optional)", commonSchemas.roleTitle.optional().or(z.literal(""))),
-      makeTextStep("phone", "Best phone number", commonSchemas.phone, "(860) 555-0199", "phone"),
-      makeTextStep("email", "Best email address", commonSchemas.email, "name@business.com", "email"),
+      makeTextStep("contact_name", "Who is the best person for us to contact?", commonSchemas.contactName),
+      makeTextStep("role_title", "What is your role/title? (optional)", commonSchemas.roleTitle.optional().or(z.literal(""))),
+      makeTextStep("phone", "What's the best phone number to reach you?", commonSchemas.phone, "(860) 555-0199", "phone"),
+      makeTextStep("email", "What's the best email address to reach you?", commonSchemas.email, "name@business.com", "email"),
       {
         key: "budget_range",
         prompt: "What budget range are you considering?",
@@ -312,7 +312,7 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
       },
       {
         key: "advertising_interests",
-        prompt: "Advertising interests",
+        prompt: "Which advertising interests are top of mind for you?",
         type: "object",
         schema: commonSchemas.advertisingInterests,
         options: [
@@ -326,7 +326,7 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
       makeTextStep("team_size", "How many people are on your team?", commonSchemas.teamSize, "e.g., 5", "number"),
       {
         key: "workspace_preferences",
-        prompt: "Which workspace options are you interested in?",
+        prompt: "Which workspace options are you most interested in?",
         type: "multi_select",
         options: [
           { label: "Hot Desk", value: "hot_desk" },
@@ -340,7 +340,7 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
       },
       {
         key: "start_timeline",
-        prompt: "When are you hoping to start?",
+        prompt: "When would you ideally like to get started?",
         type: "select",
         options: [
           { label: "ASAP", value: "asap" },
@@ -356,7 +356,7 @@ export const flowDefinitions: Record<LeadIntent, FlowDefinition | null> = {
         type: "boolean",
         schema: commonSchemas.visitInterest
       },
-      makeTextStep("notes", "Any extra notes? (optional)", commonSchemas.notes, "Anything else we should know", "textarea")
+      makeTextStep("notes", "Anything else you'd like us to know? (optional)", commonSchemas.notes, "Anything else we should know", "textarea")
     ]
   }
 };
