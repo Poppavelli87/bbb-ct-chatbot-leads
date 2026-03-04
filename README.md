@@ -41,6 +41,13 @@ Optional (required in production privacy-email flow):
 - `SMTP_PASS`
 - `SMTP_FROM`
 
+Receipt sealing keys:
+- Dev: optional (ephemeral keys are generated if missing)
+- Production: required
+  - `SEAL_PRIVATE_KEY_PEM`
+  - `SEAL_PUBLIC_KEY_PEM`
+  - `SEAL_KEY_ID` (defaults to `k1`)
+
 ## Exact Local Commands
 
 1. Install dependencies:
@@ -128,6 +135,9 @@ pnpm start
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
 - `PUBLIC_APP_URL`
+- `SEAL_PRIVATE_KEY_PEM`
+- `SEAL_PUBLIC_KEY_PEM`
+- `SEAL_KEY_ID`
 
 ### One-click / Blueprint deploy
 
@@ -143,6 +153,9 @@ pnpm start
    - `ADMIN_USERNAME`
    - `ADMIN_PASSWORD`
    - `PUBLIC_APP_URL`
+   - `SEAL_PRIVATE_KEY_PEM`
+   - `SEAL_PUBLIC_KEY_PEM`
+   - `SEAL_KEY_ID` (`k1` recommended)
 6. Optional production email env vars:
    - `SMTP_*` (required for production privacy verification email flow)
 7. Deploy.
@@ -160,6 +173,9 @@ Health endpoint:
    - `PUBLIC_APP_URL=https://<your-railway-domain>`
    - `ADMIN_USERNAME`
    - `ADMIN_PASSWORD`
+   - `SEAL_PRIVATE_KEY_PEM`
+   - `SEAL_PUBLIC_KEY_PEM`
+   - `SEAL_KEY_ID`
    - optional `SMTP_*` for privacy verification emails
 4. Build command:
 
@@ -182,6 +198,7 @@ Public:
 - `POST /api/leads/start`
 - `POST /api/leads/:id/answer`
 - `POST /api/leads/:id/complete`
+- `GET /api/receipt/:receiptId`
 - `POST /api/privacy/request`
 - `GET /api/privacy/verify?token=...`
 - `GET /api/privacy/download?token=...`
@@ -192,8 +209,26 @@ Admin:
 - `GET /api/admin/stats`
 - `GET /api/admin/leads`
 - `GET /api/admin/leads/:id`
+- `POST /api/admin/leads/:id/verify-receipt`
 - `GET /api/admin/export.csv`
 - `POST /api/admin/jobs/mark-abandoned`
+
+## Receipt Key Generation
+
+Generate Ed25519 sealing keys:
+
+```bash
+node scripts/gen-seal-keys.mjs
+```
+
+This prints environment lines:
+- `SEAL_PRIVATE_KEY_PEM='...'`
+- `SEAL_PUBLIC_KEY_PEM='...'`
+- `SEAL_KEY_ID='k1'`
+
+Copy these into your Render service environment variables.
+
+`PUBLIC_APP_URL` should be set to your deployed app URL so receipt links resolve correctly in production.
 
 ## Notes
 
