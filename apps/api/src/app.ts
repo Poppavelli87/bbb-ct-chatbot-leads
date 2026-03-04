@@ -21,6 +21,11 @@ import { rateLimit } from "express-rate-limit";
 import { stringify } from "csv-stringify/sync";
 
 import { requireAdminAuth } from "./auth.js";
+import {
+  ensureSealKeysConfigured,
+  sealLeadCompletion,
+  verifyHash
+} from "./lib/receiptSeal.js";
 import { logger } from "./logger.js";
 import { sanitizeInputMiddleware } from "./sanitize.js";
 import { SessionStore } from "./session.js";
@@ -196,6 +201,8 @@ export const createApp = (options: CreateAppOptions = {}): express.Express => {
   const sessionStore = options.sessionStore ?? new SessionStore();
   const app = express();
 
+  ensureSealKeysConfigured();
+
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
 
@@ -329,7 +336,49 @@ export const createApp = (options: CreateAppOptions = {}): express.Express => {
       return;
     }
 
-    res.json({ lead });
+    const existingReceipt = await store.getSubmissionReceiptByLeadId(lead.id);
+    const receipt =
+      existingReceipt ??
+      (await sealLeadCompletion(lead, {
+        createSubmissionReceipt: store.createSubmissionReceipt.bind(store),
+        getSubmissionReceiptByReceiptId: store.getSubmissionReceiptByReceiptId.bind(store)
+      }));
+
+    res.json({
+      lead,
+      receipt: {
+        receiptId: receipt.receiptId,
+        sealedAt: receipt.sealedAt,
+        verificationCode: receipt.payloadHash.slice(0, 12)
+      }
+    });
+  });
+
+  app.get("/api/receipt/:receiptId", async (req: Request, res: Response) => {
+    const receiptId = String(req.params.receiptId ?? "");
+    const receipt = await store.getSubmissionReceiptByReceiptId(receiptId);
+
+    if (!receipt) {
+      res.status(404).json({ error: "Receipt not found" });
+      return;
+    }
+
+    const lead = await store.getLeadById(receipt.leadId);
+    if (!lead) {
+      res.status(404).json({ error: "Lead not found for receipt" });
+      return;
+    }
+
+    const verified = verifyHash(receipt.payloadHash, receipt.signature);
+
+    res.json({
+      receiptId: receipt.receiptId,
+      sealedAt: receipt.sealedAt,
+      verified,
+      intent: lead.intent,
+      businessName: lead.businessName,
+      completedAt: lead.completedAt
+    });
   });
 
   app.post("/api/admin/login", (req: Request, res: Response) => {
@@ -403,7 +452,56 @@ export const createApp = (options: CreateAppOptions = {}): express.Express => {
       return;
     }
 
-    res.json({ lead });
+    const receipt = await store.getSubmissionReceiptByLeadId(lead.id);
+
+    res.json({
+      lead,
+      receipt: receipt
+        ? {
+            receiptId: receipt.receiptId,
+            keyId: receipt.keyId,
+            sealedAt: receipt.sealedAt,
+            verified: receipt.verifiedAt !== null,
+            verifiedAt: receipt.verifiedAt
+          }
+        : null
+    });
+  });
+
+  app.post("/api/admin/leads/:id/verify-receipt", async (req: Request, res: Response) => {
+    const leadId = String(req.params.id ?? "");
+    const lead = await store.getLeadById(leadId);
+
+    if (!lead) {
+      res.status(404).json({ error: "Lead not found" });
+      return;
+    }
+
+    const receipt = await store.getSubmissionReceiptByLeadId(lead.id);
+    if (!receipt) {
+      res.status(404).json({ error: "Receipt not found for lead" });
+      return;
+    }
+
+    const verified = verifyHash(receipt.payloadHash, receipt.signature);
+
+    const updatedReceipt =
+      verified && !receipt.verifiedAt
+        ? await store.markSubmissionReceiptVerified(receipt.receiptId, new Date())
+        : receipt;
+
+    res.json({
+      verified,
+      receipt: updatedReceipt
+        ? {
+            receiptId: updatedReceipt.receiptId,
+            keyId: updatedReceipt.keyId,
+            sealedAt: updatedReceipt.sealedAt,
+            verified: updatedReceipt.verifiedAt !== null,
+            verifiedAt: updatedReceipt.verifiedAt
+          }
+        : null
+    });
   });
 
   app.get("/api/admin/export.csv", async (req: Request, res: Response) => {

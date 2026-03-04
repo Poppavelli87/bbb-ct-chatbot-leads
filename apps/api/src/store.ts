@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { db, leads, privacyRequests } from "@bbb/db";
+import { db, leads, privacyRequests, submissionReceipts } from "@bbb/db";
 import {
   and,
   desc,
@@ -56,6 +56,18 @@ export type PrivacyRequestRecord = {
   details: Record<string, unknown>;
 };
 
+export type SubmissionReceiptRecord = {
+  id: string;
+  receiptId: string;
+  leadId: string;
+  keyId: string;
+  payloadJson: Record<string, unknown>;
+  payloadHash: string;
+  signature: string;
+  sealedAt: Date;
+  verifiedAt: Date | null;
+};
+
 export type LeadFilters = {
   intent?: LeadIntent;
   status?: LeadStatus | "abandoned";
@@ -90,6 +102,15 @@ export type CreatePrivacyRequestInput = {
   details?: Record<string, unknown>;
 };
 
+export type CreateSubmissionReceiptInput = {
+  receiptId: string;
+  leadId: string;
+  keyId: string;
+  payloadJson: Record<string, unknown>;
+  payloadHash: string;
+  signature: string;
+};
+
 export interface AppStore {
   createLead(input: CreateLeadInput): Promise<LeadRecord>;
   getLeadById(id: string): Promise<LeadRecord | null>;
@@ -108,6 +129,13 @@ export interface AppStore {
     id: string,
     updates: Partial<Omit<PrivacyRequestRecord, "id" | "createdAt" | "tokenHash">>
   ): Promise<PrivacyRequestRecord | null>;
+  createSubmissionReceipt(input: CreateSubmissionReceiptInput): Promise<SubmissionReceiptRecord>;
+  getSubmissionReceiptByReceiptId(receiptId: string): Promise<SubmissionReceiptRecord | null>;
+  getSubmissionReceiptByLeadId(leadId: string): Promise<SubmissionReceiptRecord | null>;
+  markSubmissionReceiptVerified(
+    receiptId: string,
+    verifiedAt: Date
+  ): Promise<SubmissionReceiptRecord | null>;
   findLeadsByEmail(email: string, leadId?: string): Promise<LeadRecord[]>;
   anonymizeLeadsByEmail(email: string, leadId?: string): Promise<number>;
 }
@@ -145,6 +173,20 @@ const mapPrivacyRequest = (
   verifiedAt: row.verifiedAt,
   fulfilledAt: row.fulfilledAt,
   details: (row.details as Record<string, unknown>) ?? {}
+});
+
+const mapSubmissionReceipt = (
+  row: typeof submissionReceipts.$inferSelect
+): SubmissionReceiptRecord => ({
+  id: row.id,
+  receiptId: row.receiptId,
+  leadId: row.leadId,
+  keyId: row.keyId,
+  payloadJson: (row.payloadJson as Record<string, unknown>) ?? {},
+  payloadHash: row.payloadHash,
+  signature: row.signature,
+  sealedAt: row.sealedAt,
+  verifiedAt: row.verifiedAt
 });
 
 const nowMinusMinutes = (minutes: number): Date =>
@@ -230,6 +272,63 @@ export class DrizzleStore implements AppStore {
       .returning();
 
     return updated ? mapLead(updated) : null;
+  }
+
+  async createSubmissionReceipt(
+    input: CreateSubmissionReceiptInput
+  ): Promise<SubmissionReceiptRecord> {
+    const [created] = await db
+      .insert(submissionReceipts)
+      .values({
+        receiptId: input.receiptId,
+        leadId: input.leadId,
+        keyId: input.keyId,
+        payloadJson: input.payloadJson,
+        payloadHash: input.payloadHash,
+        signature: input.signature
+      })
+      .returning();
+
+    if (!created) {
+      throw new Error("Failed to create submission receipt");
+    }
+
+    return mapSubmissionReceipt(created);
+  }
+
+  async getSubmissionReceiptByReceiptId(
+    receiptId: string
+  ): Promise<SubmissionReceiptRecord | null> {
+    const [row] = await db
+      .select()
+      .from(submissionReceipts)
+      .where(eq(submissionReceipts.receiptId, receiptId));
+
+    return row ? mapSubmissionReceipt(row) : null;
+  }
+
+  async getSubmissionReceiptByLeadId(leadId: string): Promise<SubmissionReceiptRecord | null> {
+    const [row] = await db
+      .select()
+      .from(submissionReceipts)
+      .where(eq(submissionReceipts.leadId, leadId));
+
+    return row ? mapSubmissionReceipt(row) : null;
+  }
+
+  async markSubmissionReceiptVerified(
+    receiptId: string,
+    verifiedAt: Date
+  ): Promise<SubmissionReceiptRecord | null> {
+    const [updated] = await db
+      .update(submissionReceipts)
+      .set({
+        verifiedAt
+      })
+      .where(eq(submissionReceipts.receiptId, receiptId))
+      .returning();
+
+    return updated ? mapSubmissionReceipt(updated) : null;
   }
 
   async listLeads(filters: LeadFilters): Promise<{ total: number; items: LeadRecord[] }> {
@@ -447,6 +546,8 @@ export class MemoryStore implements AppStore {
 
   private privacyRows: PrivacyRequestRecord[] = [];
 
+  private submissionReceiptRows: SubmissionReceiptRecord[] = [];
+
   async createLead(input: CreateLeadInput): Promise<LeadRecord> {
     const now = new Date();
     const row: LeadRecord = {
@@ -517,6 +618,50 @@ export class MemoryStore implements AppStore {
     existing.updatedAt = new Date();
 
     return { ...existing, data: { ...existing.data } };
+  }
+
+  async createSubmissionReceipt(
+    input: CreateSubmissionReceiptInput
+  ): Promise<SubmissionReceiptRecord> {
+    const row: SubmissionReceiptRecord = {
+      id: randomUUID(),
+      receiptId: input.receiptId,
+      leadId: input.leadId,
+      keyId: input.keyId,
+      payloadJson: { ...input.payloadJson },
+      payloadHash: input.payloadHash,
+      signature: input.signature,
+      sealedAt: new Date(),
+      verifiedAt: null
+    };
+
+    this.submissionReceiptRows.push(row);
+    return { ...row, payloadJson: { ...row.payloadJson } };
+  }
+
+  async getSubmissionReceiptByReceiptId(
+    receiptId: string
+  ): Promise<SubmissionReceiptRecord | null> {
+    const row = this.submissionReceiptRows.find((entry) => entry.receiptId === receiptId);
+    return row ? { ...row, payloadJson: { ...row.payloadJson } } : null;
+  }
+
+  async getSubmissionReceiptByLeadId(leadId: string): Promise<SubmissionReceiptRecord | null> {
+    const row = this.submissionReceiptRows.find((entry) => entry.leadId === leadId);
+    return row ? { ...row, payloadJson: { ...row.payloadJson } } : null;
+  }
+
+  async markSubmissionReceiptVerified(
+    receiptId: string,
+    verifiedAt: Date
+  ): Promise<SubmissionReceiptRecord | null> {
+    const row = this.submissionReceiptRows.find((entry) => entry.receiptId === receiptId);
+    if (!row) {
+      return null;
+    }
+
+    row.verifiedAt = verifiedAt;
+    return { ...row, payloadJson: { ...row.payloadJson } };
   }
 
   async listLeads(filters: LeadFilters): Promise<{ total: number; items: LeadRecord[] }> {

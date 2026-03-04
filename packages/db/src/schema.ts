@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid
 } from "drizzle-orm/pg-core";
 
@@ -85,7 +86,31 @@ export const privacyRequests = pgTable("privacy_requests", {
   details: jsonb("details").$type<Record<string, unknown>>().notNull().default({})
 });
 
+export const submissionReceipts = pgTable(
+  "submission_receipts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    receiptId: text("receipt_id").notNull(),
+    leadId: uuid("lead_id")
+      .notNull()
+      .references(() => leads.id, { onDelete: "cascade" }),
+    keyId: text("key_id").notNull(),
+    payloadJson: jsonb("payload_json").$type<Record<string, unknown>>().notNull(),
+    payloadHash: text("payload_hash").notNull(),
+    signature: text("signature").notNull(),
+    sealedAt: timestamp("sealed_at", { withTimezone: true }).notNull().defaultNow(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true })
+  },
+  (table) => ({
+    receiptIdUnique: uniqueIndex("submission_receipts_receipt_id_uidx").on(table.receiptId),
+    receiptIdIdx: index("submission_receipts_receipt_id_idx").on(table.receiptId),
+    leadIdIdx: index("submission_receipts_lead_id_idx").on(table.leadId)
+  })
+);
+
 export type Lead = typeof leads.$inferSelect;
 export type NewLead = typeof leads.$inferInsert;
 export type PrivacyRequest = typeof privacyRequests.$inferSelect;
 export type NewPrivacyRequest = typeof privacyRequests.$inferInsert;
+export type SubmissionReceipt = typeof submissionReceipts.$inferSelect;
+export type NewSubmissionReceipt = typeof submissionReceipts.$inferInsert;
