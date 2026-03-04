@@ -4,6 +4,7 @@ import { AdminPage } from "./pages/AdminPage";
 import { ChatbotPage } from "./pages/ChatbotPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { PrivacyRequestPage } from "./pages/PrivacyRequestPage";
+import { ReceiptPage } from "./pages/ReceiptPage";
 
 const navClassName = ({ isActive }: { isActive: boolean }): string =>
   `rounded-full px-3 py-2 text-sm transition ${
@@ -19,6 +20,7 @@ const AppRoutes = () => (
     <Route path="/privacy" element={<PrivacyPage />} />
     <Route path="/privacy-request" element={<PrivacyRequestPage />} />
     <Route path="/privacy-request/verify" element={<PrivacyRequestPage />} />
+    <Route path="/receipt/:receiptId" element={<ReceiptPage />} />
   </Routes>
 );
 

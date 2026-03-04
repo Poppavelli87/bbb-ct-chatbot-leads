@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 import {
   getFlowByIntent,
@@ -21,6 +22,12 @@ type ChatMessage = {
   text: string;
 };
 
+type CompletionReceipt = {
+  receiptId: string;
+  sealedAt: string;
+  verificationCode: string;
+};
+
 type PersistedState = {
   version: 1;
   phase: Phase;
@@ -29,6 +36,7 @@ type PersistedState = {
   isCtBusiness: boolean | null;
   accreditationStatus: AccreditationStatus | null;
   businessName: string | null;
+  completionReceipt: CompletionReceipt | null;
   leadId: string | null;
   currentStepIndex: number;
   messages: ChatMessage[];
@@ -128,6 +136,7 @@ export const ChatbotPage = () => {
   const [accreditationStatus, setAccreditationStatus] =
     useState<AccreditationStatus | null>(null);
   const [businessName, setBusinessName] = useState<string | null>(null);
+  const [completionReceipt, setCompletionReceipt] = useState<CompletionReceipt | null>(null);
   const [leadId, setLeadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -169,6 +178,7 @@ export const ChatbotPage = () => {
       setIsCtBusiness(parsed.isCtBusiness);
       setAccreditationStatus(parsed.accreditationStatus);
       setBusinessName(parsed.businessName ?? null);
+      setCompletionReceipt(parsed.completionReceipt ?? null);
       setLeadId(parsed.leadId);
       setCurrentStepIndex(parsed.currentStepIndex);
       setMessages(parsed.messages.length > 0 ? parsed.messages : [initialMessage]);
@@ -192,6 +202,7 @@ export const ChatbotPage = () => {
       isCtBusiness,
       accreditationStatus,
       businessName,
+      completionReceipt,
       leadId,
       currentStepIndex,
       messages
@@ -201,6 +212,7 @@ export const ChatbotPage = () => {
   }, [
     accreditationStatus,
     businessName,
+    completionReceipt,
     currentStepIndex,
     endState,
     isCtBusiness,
@@ -227,7 +239,10 @@ export const ChatbotPage = () => {
   };
 
   const markLeadComplete = async (id: string) => {
-    await apiRequest(`/api/leads/${id}/complete`, { method: "POST" });
+    const payload = await apiRequest<{ receipt: CompletionReceipt }>(`/api/leads/${id}/complete`, {
+      method: "POST"
+    });
+    setCompletionReceipt(payload.receipt);
   };
 
   const handleIntentSelect = async (intent: SelectableIntent) => {
@@ -416,6 +431,7 @@ export const ChatbotPage = () => {
     setIsCtBusiness(null);
     setAccreditationStatus(null);
     setBusinessName(null);
+    setCompletionReceipt(null);
     setLeadId(null);
     setCurrentStepIndex(0);
     setMessages([initialMessage]);
@@ -617,24 +633,45 @@ export const ChatbotPage = () => {
             ) : null}
 
             {phase === "done" ? (
-              <div className="flex flex-wrap gap-2">
-                <button
-                  className={primaryButtonClass}
-                  type="button"
-                  onClick={restart}
-                >
-                  Start over
-                </button>
-                {endState === "redirect" ? (
-                  <a
-                    className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-slate-800 transition duration-150 hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm active:scale-[0.99]"
-                    href="https://www.bbb.org"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open bbb.org
-                  </a>
+              <div className="space-y-4">
+                {completionReceipt ? (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+                    <h3 className="text-base font-semibold">Submission received and sealed</h3>
+                    <p className="mt-2">
+                      Receipt ID: <span className="font-semibold">{completionReceipt.receiptId}</span>
+                    </p>
+                    <p>
+                      Verification code:{" "}
+                      <span className="font-semibold">{completionReceipt.verificationCode}</span>
+                    </p>
+                    <Link
+                      className="mt-3 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 hover:shadow-md hover:ring-2 hover:ring-orange-300/60 active:scale-[0.99]"
+                      to={`/receipt/${encodeURIComponent(completionReceipt.receiptId)}`}
+                    >
+                      View receipt
+                    </Link>
+                  </div>
                 ) : null}
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className={primaryButtonClass}
+                    type="button"
+                    onClick={restart}
+                  >
+                    Start over
+                  </button>
+                  {endState === "redirect" ? (
+                    <a
+                      className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-slate-800 transition duration-150 hover:border-orange-300 hover:bg-orange-50 hover:shadow-sm active:scale-[0.99]"
+                      href="https://www.bbb.org"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Open bbb.org
+                    </a>
+                  ) : null}
+                </div>
               </div>
             ) : null}
           </div>

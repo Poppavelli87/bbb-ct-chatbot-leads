@@ -30,6 +30,14 @@ type LeadRow = {
   data: Record<string, unknown>;
 };
 
+type ReceiptSummary = {
+  receiptId: string;
+  keyId: string;
+  sealedAt: string;
+  verified: boolean;
+  verifiedAt: string | null;
+};
+
 type Stats = {
   total: number;
   complete: number;
@@ -63,6 +71,9 @@ export const AdminPage = () => {
   const [rows, setRows] = useState<LeadRow[]>([]);
   const [total, setTotal] = useState(0);
   const [selectedLead, setSelectedLead] = useState<LeadRow | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptSummary | null>(null);
+  const [verifyingReceipt, setVerifyingReceipt] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<"pass" | "fail" | null>(null);
   const [loadingRows, setLoadingRows] = useState(false);
 
   const [intent, setIntent] = useState<IntentFilter>("");
@@ -164,8 +175,33 @@ export const AdminPage = () => {
   };
 
   const openLead = async (leadId: string) => {
-    const payload = await apiRequest<{ lead: LeadRow }>(`/api/admin/leads/${leadId}`);
+    const payload = await apiRequest<{ lead: LeadRow; receipt: ReceiptSummary | null }>(
+      `/api/admin/leads/${leadId}`
+    );
     setSelectedLead(payload.lead);
+    setSelectedReceipt(payload.receipt);
+    setVerifyResult(null);
+  };
+
+  const verifyReceipt = async (leadId: string) => {
+    setVerifyingReceipt(true);
+    setVerifyResult(null);
+
+    try {
+      const payload = await apiRequest<{ verified: boolean; receipt: ReceiptSummary | null }>(
+        `/api/admin/leads/${leadId}/verify-receipt`,
+        { method: "POST" }
+      );
+
+      setVerifyResult(payload.verified ? "pass" : "fail");
+      if (payload.receipt) {
+        setSelectedReceipt(payload.receipt);
+      }
+    } catch {
+      setVerifyResult("fail");
+    } finally {
+      setVerifyingReceipt(false);
+    }
   };
 
   if (checkingAuth) {
@@ -384,14 +420,28 @@ export const AdminPage = () => {
       </div>
 
       {selectedLead ? (
-        <div className="fixed inset-0 z-20 bg-slate-900/35 p-4" onClick={() => setSelectedLead(null)}>
+        <div
+          className="fixed inset-0 z-20 bg-slate-900/35 p-4"
+          onClick={() => {
+            setSelectedLead(null);
+            setSelectedReceipt(null);
+            setVerifyResult(null);
+          }}
+        >
           <div
             className="ml-auto h-full w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-5"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-slate-900">Lead Detail</h2>
-              <button className="btn-secondary" onClick={() => setSelectedLead(null)}>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setSelectedLead(null);
+                  setSelectedReceipt(null);
+                  setVerifyResult(null);
+                }}
+              >
                 Close
               </button>
             </div>
@@ -425,6 +475,47 @@ export const AdminPage = () => {
                 <dd>{selectedLead.lastStepKey ?? "-"}</dd>
               </div>
             </dl>
+            <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-semibold text-slate-800">Submission Receipt</h3>
+                {selectedReceipt ? (
+                  <button
+                    className="btn-secondary"
+                    onClick={() => void verifyReceipt(selectedLead.id)}
+                    disabled={verifyingReceipt}
+                  >
+                    {verifyingReceipt ? "Verifying..." : "Verify receipt"}
+                  </button>
+                ) : null}
+              </div>
+
+              {selectedReceipt ? (
+                <div className="mt-3 space-y-1">
+                  <p>
+                    Receipt ID: <span className="font-semibold">{selectedReceipt.receiptId}</span>
+                  </p>
+                  <p>Sealed At: {new Date(selectedReceipt.sealedAt).toLocaleString()}</p>
+                  <p>
+                    Verified:{" "}
+                    <span className={selectedReceipt.verified ? "text-emerald-700" : "text-slate-700"}>
+                      {selectedReceipt.verified ? "Yes" : "No"}
+                    </span>
+                  </p>
+                  {selectedReceipt.verifiedAt ? (
+                    <p>Verified At: {new Date(selectedReceipt.verifiedAt).toLocaleString()}</p>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="mt-3 text-slate-600">No receipt has been sealed for this lead yet.</p>
+              )}
+
+              {verifyResult === "pass" ? (
+                <p className="mt-3 text-emerald-700">PASS: signature verification succeeded.</p>
+              ) : null}
+              {verifyResult === "fail" ? (
+                <p className="mt-3 text-red-700">FAIL: signature verification failed.</p>
+              ) : null}
+            </div>
             <h3 className="mt-4 text-sm font-semibold text-slate-700">Captured Data</h3>
             <pre className="mt-2 overflow-auto rounded-xl bg-slate-900 p-3 text-xs text-slate-100">
               {JSON.stringify(selectedLead.data, null, 2)}
